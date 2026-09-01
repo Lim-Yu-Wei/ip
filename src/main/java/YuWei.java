@@ -20,16 +20,15 @@ public class YuWei {
 
         String line = in.nextLine();
         while (!line.equals("bye")) {
-            String[] parts = line.split(" ");
+            String[] parts = line.split(" ", 2);
             System.out.println(DIVIDER);
+
 
             switch (parts[0]) {
                 case "list" -> {
                     System.out.println("     Here are the tasks in your list:");
                     for (int i = 0; i < index; i++) {
-                        System.out.println("     " + (i + 1) + ".["
-                                + tasks[i].getStatusIcon() + "] "
-                                + tasks[i].getDescription());
+                        System.out.println("     " + (i + 1) + ". " + tasks[i]);
                     }
                 }
                 case "mark" -> {
@@ -37,8 +36,7 @@ public class YuWei {
                     if (taskNumber >= 0 && taskNumber < index) {
                         tasks[taskNumber].markAsDone();
                         System.out.println("     Nice! I've marked this task as done:");
-                        System.out.println("       [" + tasks[taskNumber].getStatusIcon()
-                                + "] " + tasks[taskNumber].getDescription());
+                        System.out.println("       " + tasks[taskNumber]);
                     } else {
                         System.out.println("     Sorry, that task does not exist!");
                     }
@@ -48,16 +46,34 @@ public class YuWei {
                     if (taskNumber >= 0 && taskNumber < index) {
                         tasks[taskNumber].markAsNotDone();
                         System.out.println("     OK, I've marked this task as not done yet:");
-                        System.out.println("       [" + tasks[taskNumber].getStatusIcon()
-                                + "] " + tasks[taskNumber].getDescription());
+                        System.out.println("       " + tasks[taskNumber]);
                     } else {
                         System.out.println("     Sorry, that task does not exist!");
                     }
                 }
-                default -> {
-                    tasks[index++] = new Task(line);
-                    System.out.println("     added: " + line);
+                case "todo" -> {
+                    tasks[index++] = new ToDo(parts[1]);
+                    System.out.println("Got it. I've added this task: " + tasks[index - 1]);
+                    System.out.println("Now you have " + index + " tasks in the list.");
                 }
+                case "deadline" -> {
+                    String[] descriptionAndBy = parts[1].split(" /by ", 2);
+                    tasks[index++] = new Deadline(descriptionAndBy[0], descriptionAndBy[1]);
+                    System.out.println("Got it. I've added this task: " + tasks[index - 1]);
+                    System.out.println("Now you have " + index + " tasks in the list.");
+                }
+
+                case "event" -> {
+                    String[] description = parts[1].split(" /from ", 2);
+                    String[] fromAndTo = description[1].split(" /to ");
+                    tasks[index++] = new Event(description[0], fromAndTo[0], fromAndTo[1]);
+                    System.out.println("Got it. I've added this task: " + tasks[index - 1]);
+                    System.out.println("Now you have " + index + " tasks in the list.");
+                }
+//                default -> {
+//                    tasks[index++] = new Task(line);
+//                    System.out.println("     added: " + line);
+//                }
             }
 
             System.out.println(DIVIDER);
