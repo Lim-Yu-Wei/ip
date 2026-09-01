@@ -1,86 +1,140 @@
 import java.util.Scanner;
 
+/**
+ * A command-line chatbot that keeps track of a list of tasks entered by the user.
+ *
+ * <p>Supported commands: {@code list}, {@code mark}, {@code unmark}, {@code todo},
+ * {@code deadline}, {@code event} and {@code bye}.
+ */
 public class YuWei {
     private static final String BOT_NAME = "YuWei";
     private static final String DIVIDER =
             "    ____________________________________________________________";
     private static final int MAX_TASKS = 100;
+    private static final String EXIT_COMMAND = "bye";
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
-
         Task[] tasks = new Task[MAX_TASKS];
-        int index = 0;
+        int taskCount = 0;
 
-        System.out.println(DIVIDER);
-        System.out.println("     Hello! I'm " + BOT_NAME);
-        System.out.println("     What can I do for you?");
-        System.out.println(DIVIDER);
-        System.out.println();
+        printGreeting();
 
         String line = in.nextLine();
-        while (!line.equals("bye")) {
-            String[] parts = line.split(" ", 2);
+        while (!line.equals(EXIT_COMMAND)) {
             System.out.println(DIVIDER);
-
-
-            switch (parts[0]) {
-                case "list" -> {
-                    System.out.println("     Here are the tasks in your list:");
-                    for (int i = 0; i < index; i++) {
-                        System.out.println("     " + (i + 1) + ". " + tasks[i]);
-                    }
-                }
-                case "mark" -> {
-                    int taskNumber = Integer.parseInt(parts[1]) - 1;
-                    if (taskNumber >= 0 && taskNumber < index) {
-                        tasks[taskNumber].markAsDone();
-                        System.out.println("     Nice! I've marked this task as done:");
-                        System.out.println("       " + tasks[taskNumber]);
-                    } else {
-                        System.out.println("     Sorry, that task does not exist!");
-                    }
-                }
-                case "unmark" -> {
-                    int taskNumber = Integer.parseInt(parts[1]) - 1;
-                    if (taskNumber >= 0 && taskNumber < index) {
-                        tasks[taskNumber].markAsNotDone();
-                        System.out.println("     OK, I've marked this task as not done yet:");
-                        System.out.println("       " + tasks[taskNumber]);
-                    } else {
-                        System.out.println("     Sorry, that task does not exist!");
-                    }
-                }
-                case "todo" -> {
-                    tasks[index++] = new ToDo(parts[1]);
-                    System.out.println("Got it. I've added this task: " + tasks[index - 1]);
-                    System.out.println("Now you have " + index + " tasks in the list.");
-                }
-                case "deadline" -> {
-                    String[] descriptionAndBy = parts[1].split(" /by ", 2);
-                    tasks[index++] = new Deadline(descriptionAndBy[0], descriptionAndBy[1]);
-                    System.out.println("Got it. I've added this task: " + tasks[index - 1]);
-                    System.out.println("Now you have " + index + " tasks in the list.");
-                }
-
-                case "event" -> {
-                    String[] description = parts[1].split(" /from ", 2);
-                    String[] fromAndTo = description[1].split(" /to ");
-                    tasks[index++] = new Event(description[0], fromAndTo[0], fromAndTo[1]);
-                    System.out.println("Got it. I've added this task: " + tasks[index - 1]);
-                    System.out.println("Now you have " + index + " tasks in the list.");
-                }
-//                default -> {
-//                    tasks[index++] = new Task(line);
-//                    System.out.println("     added: " + line);
-//                }
-            }
-
+            taskCount = executeCommand(line, tasks, taskCount);
             System.out.println(DIVIDER);
             System.out.println();
             line = in.nextLine();
         }
 
+        printFarewell();
+    }
+
+    /**
+     * Executes the command contained in the given input line.
+     *
+     * @return the number of tasks in the list after the command has run, which
+     *         differs from {@code taskCount} only when a task was added.
+     */
+    private static int executeCommand(String line, Task[] tasks, int taskCount) {
+        String[] commandAndArgument = line.split(" ", 2);
+        String command = commandAndArgument[0];
+        int updatedTaskCount = taskCount;
+
+        switch (command) {
+            case "list" -> listTasks(tasks, taskCount);
+            case "mark" -> markTask(tasks, taskCount, commandAndArgument[1]);
+            case "unmark" -> unmarkTask(tasks, taskCount, commandAndArgument[1]);
+            case "todo", "deadline", "event" -> {
+                tasks[updatedTaskCount] = createTask(command, commandAndArgument[1]);
+                updatedTaskCount++;
+                printTaskAdded(tasks[updatedTaskCount - 1], updatedTaskCount);
+            }
+        }
+
+        return updatedTaskCount;
+    }
+
+    /**
+     * Creates the task described by {@code argument}, of the type named by {@code command}.
+     */
+    private static Task createTask(String command, String argument) {
+        return switch (command) {
+            case "todo" -> new ToDo(argument);
+            case "deadline" -> createDeadline(argument);
+            case "event" -> createEvent(argument);
+            // Unreachable: executeCommand only calls this for the three types above.
+            default -> throw new IllegalArgumentException("Unknown task type: " + command);
+        };
+    }
+
+    /** Creates a Deadline from an argument of the form {@code <description> /by <time>}. */
+    private static Deadline createDeadline(String argument) {
+        String[] descriptionAndBy = argument.split(" /by ", 2);
+        return new Deadline(descriptionAndBy[0], descriptionAndBy[1]);
+    }
+
+    /** Creates an Event from an argument of the form {@code <description> /from <t> /to <t>}. */
+    private static Event createEvent(String argument) {
+        String[] descriptionAndTimes = argument.split(" /from ", 2);
+        String[] fromAndTo = descriptionAndTimes[1].split(" /to ");
+        return new Event(descriptionAndTimes[0], fromAndTo[0], fromAndTo[1]);
+    }
+
+    private static void listTasks(Task[] tasks, int taskCount) {
+        System.out.println("     Here are the tasks in your list:");
+        for (int i = 0; i < taskCount; i++) {
+            System.out.println("     " + (i + 1) + ". " + tasks[i]);
+        }
+    }
+
+    private static void markTask(Task[] tasks, int taskCount, String taskNumber) {
+        int taskIndex = Integer.parseInt(taskNumber) - 1;
+        if (!isExistingTask(taskIndex, taskCount)) {
+            printTaskNotFound();
+            return;
+        }
+        tasks[taskIndex].markAsDone();
+        System.out.println("     Nice! I've marked this task as done:");
+        System.out.println("       " + tasks[taskIndex]);
+    }
+
+    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumber) {
+        int taskIndex = Integer.parseInt(taskNumber) - 1;
+        if (!isExistingTask(taskIndex, taskCount)) {
+            printTaskNotFound();
+            return;
+        }
+        tasks[taskIndex].markAsNotDone();
+        System.out.println("     OK, I've marked this task as not done yet:");
+        System.out.println("       " + tasks[taskIndex]);
+    }
+
+    /** Returns true if {@code taskIndex} refers to a task currently in the list. */
+    private static boolean isExistingTask(int taskIndex, int taskCount) {
+        return taskIndex >= 0 && taskIndex < taskCount;
+    }
+
+    private static void printTaskAdded(Task task, int taskCount) {
+        System.out.println("Got it. I've added this task: " + task);
+        System.out.println("Now you have " + taskCount + " tasks in the list.");
+    }
+
+    private static void printTaskNotFound() {
+        System.out.println("     Sorry, that task does not exist!");
+    }
+
+    private static void printGreeting() {
+        System.out.println(DIVIDER);
+        System.out.println("     Hello! I'm " + BOT_NAME);
+        System.out.println("     What can I do for you?");
+        System.out.println(DIVIDER);
+        System.out.println();
+    }
+
+    private static void printFarewell() {
         System.out.println(DIVIDER);
         System.out.println("     Bye. Hope to see you again soon!");
         System.out.println(DIVIDER);
