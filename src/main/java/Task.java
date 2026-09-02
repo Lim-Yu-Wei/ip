@@ -26,7 +26,7 @@ public abstract class Task {
     public abstract String getType();
 
     @Override
-    public String toString(){
+    public String toString() {
         return getType() + getStatusIcon() + description;
     }
 }
