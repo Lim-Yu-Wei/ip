@@ -57,7 +57,7 @@ public class YuWei {
             case "unmark" -> unmarkTask(tasks, taskCount,
                     requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
             case "todo", "deadline", "event" -> {
-                if(updatedTaskCount >= MAX_TASKS) {
+                if (updatedTaskCount >= MAX_TASKS) {
                     throw new YuWeiException("Your list is full. I can only keep " + MAX_TASKS + " tasks.");
                 }
                 String argument = requireArgument(commandAndArgument,
@@ -147,10 +147,9 @@ public class YuWei {
     }
 
     /**
-     * Converts a user-supplied task number into an index into the task array
+     * Converts a user-supplied task number into an index into the task array.
      *
      * @throws YuWeiException if the text is not a number or does not refer to an existing task
-     *
      */
     private static int parseTaskIndex(String taskNumber, int taskCount) throws YuWeiException {
         int taskIndex;
@@ -160,7 +159,7 @@ public class YuWei {
             throw new YuWeiException("'" + taskNumber + "' is not a task number.");
         }
         if (!isExistingTask(taskIndex, taskCount)) {
-            throw new YuWeiException("There is no task " + (taskIndex + 1) + " in your list");
+            throw new YuWeiException("There is no task " + (taskIndex + 1) + " in your list.");
         }
         return taskIndex;
     }
