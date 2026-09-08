@@ -13,7 +13,8 @@ public class YuWei {
     private static final int MAX_TASKS = 100;
     private static final String EXIT_COMMAND = "bye";
     private static final String MISSING_TASK_NUMBER_MESSAGE = "Please tell me which task number to mark or unmark.";
-
+    private static final String EVENT_FORMAT_MESSAGE =
+            "An event needs a start and an end. Try: event <description> /from <start> /to <end>";
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         Task[] tasks = new Task[MAX_TASKS];
@@ -83,7 +84,7 @@ public class YuWei {
     /**
      * Creates the task described by {@code argument}, of the type named by {@code command}.
      */
-    private static Task createTask(String command, String argument) {
+    private static Task createTask(String command, String argument) throws YuWeiException {
         return switch (command) {
             case "todo" -> new ToDo(argument);
             case "deadline" -> createDeadline(argument);
@@ -94,15 +95,24 @@ public class YuWei {
     }
 
     /** Creates a Deadline from an argument of the form {@code <description> /by <time>}. */
-    private static Deadline createDeadline(String argument) {
+    private static Deadline createDeadline(String argument) throws YuWeiException {
         String[] descriptionAndBy = argument.split(" /by ", 2);
+        if (descriptionAndBy.length < 2) {
+            throw new YuWeiException("A deadline needs a time. Try: deadline <description> /by <time>");
+        }
         return new Deadline(descriptionAndBy[0], descriptionAndBy[1]);
     }
 
     /** Creates an Event from an argument of the form {@code <description> /from <t> /to <t>}. */
-    private static Event createEvent(String argument) {
+    private static Event createEvent(String argument) throws YuWeiException {
         String[] descriptionAndTimes = argument.split(" /from ", 2);
-        String[] fromAndTo = descriptionAndTimes[1].split(" /to ");
+        if (descriptionAndTimes.length < 2) {
+            throw new YuWeiException(EVENT_FORMAT_MESSAGE);
+        }
+        String[] fromAndTo = descriptionAndTimes[1].split(" /to ", 2);
+        if (fromAndTo.length < 2) {
+            throw new YuWeiException(EVENT_FORMAT_MESSAGE);
+        }
         return new Event(descriptionAndTimes[0], fromAndTo[0], fromAndTo[1]);
     }
 
