@@ -57,6 +57,9 @@ public class YuWei {
             case "unmark" -> unmarkTask(tasks, taskCount,
                     requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
             case "todo", "deadline", "event" -> {
+                if(updatedTaskCount >= MAX_TASKS) {
+                    throw new YuWeiException("Your list is full. I can only keep " + MAX_TASKS + " tasks.");
+                }
                 String argument = requireArgument(commandAndArgument,
                         "The description of a " + command + " cannot be empty.");
                 tasks[updatedTaskCount] = createTask(command, argument);
