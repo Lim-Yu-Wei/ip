@@ -12,6 +12,7 @@ public class YuWei {
             "    ____________________________________________________________";
     private static final int MAX_TASKS = 100;
     private static final String EXIT_COMMAND = "bye";
+    private static final String MISSING_TASK_NUMBER_MESSAGE = "Please tell me which task number to mark or unmark.";
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
@@ -49,10 +50,14 @@ public class YuWei {
 
         switch (command) {
             case "list" -> listTasks(tasks, taskCount);
-            case "mark" -> markTask(tasks, taskCount, commandAndArgument[1]);
-            case "unmark" -> unmarkTask(tasks, taskCount, commandAndArgument[1]);
+            case "mark" -> markTask(tasks, taskCount,
+                    requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
+            case "unmark" -> unmarkTask(tasks, taskCount,
+                    requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
             case "todo", "deadline", "event" -> {
-                tasks[updatedTaskCount] = createTask(command, commandAndArgument[1]);
+                String argument = requireArgument(commandAndArgument,
+                        "The description of a " + command + " cannot be empty.");
+                tasks[updatedTaskCount] = createTask(command, argument);
                 updatedTaskCount++;
                 printTaskAdded(tasks[updatedTaskCount - 1], updatedTaskCount);
             }
@@ -60,6 +65,19 @@ public class YuWei {
         }
 
         return updatedTaskCount;
+    }
+
+    /**
+     * Returns the argument that follows the command word.
+     *
+     * @throws YuWeiException with {@code errorMessage} if no argument was given, or it is blank
+     */
+    private static String requireArgument(String[] commandAndArgument, String errorMessage)
+            throws YuWeiException {
+        if (commandAndArgument.length < 2 || commandAndArgument[1].isBlank()) {
+            throw new YuWeiException(errorMessage);
+        }
+        return commandAndArgument[1];
     }
 
     /**
