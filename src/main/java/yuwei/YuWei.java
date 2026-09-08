@@ -1,3 +1,10 @@
+package yuwei;
+
+import yuwei.task.Deadline;
+import yuwei.task.Event;
+import yuwei.task.Task;
+import yuwei.task.ToDo;
+
 import java.util.Scanner;
 
 /**
