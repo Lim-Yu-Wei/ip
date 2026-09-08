@@ -23,7 +23,11 @@ public class YuWei {
         String line = in.nextLine();
         while (!line.equals(EXIT_COMMAND)) {
             System.out.println(DIVIDER);
-            taskCount = executeCommand(line, tasks, taskCount);
+            try {
+                taskCount = executeCommand(line, tasks, taskCount);
+            } catch (YuWeiException e) {
+                System.out.println("     " + e.getMessage());
+            }
             System.out.println(DIVIDER);
             System.out.println();
             line = in.nextLine();
@@ -38,7 +42,7 @@ public class YuWei {
      * @return the number of tasks in the list after the command has run, which
      *         differs from {@code taskCount} only when a task was added.
      */
-    private static int executeCommand(String line, Task[] tasks, int taskCount) {
+    private static int executeCommand(String line, Task[] tasks, int taskCount) throws YuWeiException {
         String[] commandAndArgument = line.split(" ", 2);
         String command = commandAndArgument[0];
         int updatedTaskCount = taskCount;
@@ -52,6 +56,7 @@ public class YuWei {
                 updatedTaskCount++;
                 printTaskAdded(tasks[updatedTaskCount - 1], updatedTaskCount);
             }
+            default -> throw new YuWeiException("I'm sorry, but I don't know what that means :-(");
         }
 
         return updatedTaskCount;
