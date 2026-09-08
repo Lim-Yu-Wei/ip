@@ -15,6 +15,7 @@ public class YuWei {
     private static final String MISSING_TASK_NUMBER_MESSAGE = "Please tell me which task number to mark or unmark.";
     private static final String EVENT_FORMAT_MESSAGE =
             "An event needs a start and an end. Try: event <description> /from <start> /to <end>";
+
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         Task[] tasks = new Task[MAX_TASKS];
@@ -123,23 +124,15 @@ public class YuWei {
         }
     }
 
-    private static void markTask(Task[] tasks, int taskCount, String taskNumber) {
-        int taskIndex = Integer.parseInt(taskNumber) - 1;
-        if (!isExistingTask(taskIndex, taskCount)) {
-            printTaskNotFound();
-            return;
-        }
+    private static void markTask(Task[] tasks, int taskCount, String taskNumber) throws YuWeiException {
+        int taskIndex = parseTaskIndex(taskNumber, taskCount);
         tasks[taskIndex].markAsDone();
         System.out.println("     Nice! I've marked this task as done:");
         System.out.println("       " + tasks[taskIndex]);
     }
 
-    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumber) {
-        int taskIndex = Integer.parseInt(taskNumber) - 1;
-        if (!isExistingTask(taskIndex, taskCount)) {
-            printTaskNotFound();
-            return;
-        }
+    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumber) throws YuWeiException {
+        int taskIndex = parseTaskIndex(taskNumber, taskCount);
         tasks[taskIndex].markAsNotDone();
         System.out.println("     OK, I've marked this task as not done yet:");
         System.out.println("       " + tasks[taskIndex]);
@@ -150,13 +143,28 @@ public class YuWei {
         return taskIndex >= 0 && taskIndex < taskCount;
     }
 
+    /**
+     * Converts a user-supplied task number into an index into the task array
+     *
+     * @throws YuWeiException if the text is not a number or does not refer to an existing task
+     *
+     */
+    private static int parseTaskIndex(String taskNumber, int taskCount) throws YuWeiException {
+        int taskIndex;
+        try {
+            taskIndex = Integer.parseInt(taskNumber.trim()) - 1;
+        } catch (NumberFormatException e) {
+            throw new YuWeiException("'" + taskNumber + "' is not a task number.");
+        }
+        if (!isExistingTask(taskIndex, taskCount)) {
+            throw new YuWeiException("There is no task " + (taskIndex + 1) + " in your list");
+        }
+        return taskIndex;
+    }
+
     private static void printTaskAdded(Task task, int taskCount) {
         System.out.println("Got it. I've added this task: " + task);
         System.out.println("Now you have " + taskCount + " tasks in the list.");
-    }
-
-    private static void printTaskNotFound() {
-        System.out.println("     Sorry, that task does not exist!");
     }
 
     private static void printGreeting() {
