@@ -5,11 +5,13 @@ import yuwei.task.Event;
 import yuwei.task.Task;
 import yuwei.task.ToDo;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
  * A command-line chatbot that keeps track of a list of tasks entered by the user.
+ * Tasks are saved to {@code ./data/yuwei.txt} after every command and loaded again on startup.
  *
  * <p>Supported commands: {@code list}, {@code mark}, {@code unmark}, {@code delete},
  * {@code todo}, {@code deadline}, {@code event} and {@code bye}.
@@ -22,19 +24,30 @@ public class YuWei {
     private static final String MISSING_TASK_NUMBER_MESSAGE = "Please tell me which task number.";
     private static final String EVENT_FORMAT_MESSAGE =
             "An event needs a start and an end. Try: event <description> /from <start> /to <end>";
+    /** Relative path built with Path.of, so it works on any computer and any OS. */
+    private static final Path DATA_FILE = Path.of("data", "yuwei.txt");
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
+        Storage storage = new Storage(DATA_FILE);
         // An ArrayList grows as tasks are added and tracks its own size, so no separate count is needed.
         ArrayList<Task> tasks = new ArrayList<>();
 
         printGreeting();
+
+        try {
+            tasks.addAll(storage.load());
+        } catch (YuWeiException e) {
+            System.out.println("     " + e.getMessage());
+        }
 
         String line = in.nextLine();
         while (!line.equals(EXIT_COMMAND)) {
             System.out.println(DIVIDER);
             try {
                 executeCommand(line, tasks);
+                // Saving after every command is simplest and guarantees no change is lost.
+                storage.save(tasks);
             } catch (YuWeiException e) {
                 System.out.println("     " + e.getMessage());
             }
