@@ -5,6 +5,7 @@ import yuwei.task.Event;
 import yuwei.task.Task;
 import yuwei.task.ToDo;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -17,7 +18,6 @@ public class YuWei {
     private static final String BOT_NAME = "YuWei";
     private static final String DIVIDER =
             "    ____________________________________________________________";
-    private static final int MAX_TASKS = 100;
     private static final String EXIT_COMMAND = "bye";
     private static final String MISSING_TASK_NUMBER_MESSAGE = "Please tell me which task number to mark or unmark.";
     private static final String EVENT_FORMAT_MESSAGE =
@@ -25,8 +25,8 @@ public class YuWei {
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
-        Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        // An ArrayList grows as tasks are added and tracks its own size, so no separate count is needed.
+        ArrayList<Task> tasks = new ArrayList<>();
 
         printGreeting();
 
@@ -34,7 +34,7 @@ public class YuWei {
         while (!line.equals(EXIT_COMMAND)) {
             System.out.println(DIVIDER);
             try {
-                taskCount = executeCommand(line, tasks, taskCount);
+                executeCommand(line, tasks);
             } catch (YuWeiException e) {
                 System.out.println("     " + e.getMessage());
             }
@@ -47,36 +47,27 @@ public class YuWei {
     }
 
     /**
-     * Executes the command contained in the given input line.
-     *
-     * @return the number of tasks in the list after the command has run, which
-     *         differs from {@code taskCount} only when a task was added.
+     * Executes the command contained in the given input line, updating {@code tasks} if needed.
      */
-    private static int executeCommand(String line, Task[] tasks, int taskCount) throws YuWeiException {
+    private static void executeCommand(String line, ArrayList<Task> tasks) throws YuWeiException {
         String[] commandAndArgument = line.split(" ", 2);
         String command = commandAndArgument[0];
-        int updatedTaskCount = taskCount;
 
         switch (command) {
-            case "list" -> listTasks(tasks, taskCount);
-            case "mark" -> markTask(tasks, taskCount,
+            case "list" -> listTasks(tasks);
+            case "mark" -> markTask(tasks,
                     requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
-            case "unmark" -> unmarkTask(tasks, taskCount,
+            case "unmark" -> unmarkTask(tasks,
                     requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
             case "todo", "deadline", "event" -> {
-                if (updatedTaskCount >= MAX_TASKS) {
-                    throw new YuWeiException("Your list is full. I can only keep " + MAX_TASKS + " tasks.");
-                }
                 String argument = requireArgument(commandAndArgument,
                         "The description of a " + command + " cannot be empty.");
-                tasks[updatedTaskCount] = createTask(command, argument);
-                updatedTaskCount++;
-                printTaskAdded(tasks[updatedTaskCount - 1], updatedTaskCount);
+                Task task = createTask(command, argument);
+                tasks.add(task);
+                printTaskAdded(task, tasks.size());
             }
             default -> throw new YuWeiException("I'm sorry, but I don't know what that means :-(");
         }
-
-        return updatedTaskCount;
     }
 
     /**
@@ -127,25 +118,25 @@ public class YuWei {
         return new Event(descriptionAndTimes[0], fromAndTo[0], fromAndTo[1]);
     }
 
-    private static void listTasks(Task[] tasks, int taskCount) {
+    private static void listTasks(ArrayList<Task> tasks) {
         System.out.println("     Here are the tasks in your list:");
-        for (int i = 0; i < taskCount; i++) {
-            System.out.println("     " + (i + 1) + ". " + tasks[i]);
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println("     " + (i + 1) + ". " + tasks.get(i));
         }
     }
 
-    private static void markTask(Task[] tasks, int taskCount, String taskNumber) throws YuWeiException {
-        int taskIndex = parseTaskIndex(taskNumber, taskCount);
-        tasks[taskIndex].markAsDone();
+    private static void markTask(ArrayList<Task> tasks, String taskNumber) throws YuWeiException {
+        int taskIndex = parseTaskIndex(taskNumber, tasks.size());
+        tasks.get(taskIndex).markAsDone();
         System.out.println("     Nice! I've marked this task as done:");
-        System.out.println("       " + tasks[taskIndex]);
+        System.out.println("       " + tasks.get(taskIndex));
     }
 
-    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumber) throws YuWeiException {
-        int taskIndex = parseTaskIndex(taskNumber, taskCount);
-        tasks[taskIndex].markAsNotDone();
+    private static void unmarkTask(ArrayList<Task> tasks, String taskNumber) throws YuWeiException {
+        int taskIndex = parseTaskIndex(taskNumber, tasks.size());
+        tasks.get(taskIndex).markAsNotDone();
         System.out.println("     OK, I've marked this task as not done yet:");
-        System.out.println("       " + tasks[taskIndex]);
+        System.out.println("       " + tasks.get(taskIndex));
     }
 
     /** Returns true if {@code taskIndex} refers to a task currently in the list. */
@@ -154,7 +145,7 @@ public class YuWei {
     }
 
     /**
-     * Converts a user-supplied task number into an index into the task array.
+     * Converts a user-supplied task number into an index into the task list.
      *
      * @throws YuWeiException if the text is not a number or does not refer to an existing task
      */
