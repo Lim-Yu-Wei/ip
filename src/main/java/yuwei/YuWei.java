@@ -11,15 +11,15 @@ import java.util.Scanner;
 /**
  * A command-line chatbot that keeps track of a list of tasks entered by the user.
  *
- * <p>Supported commands: {@code list}, {@code mark}, {@code unmark}, {@code todo},
- * {@code deadline}, {@code event} and {@code bye}.
+ * <p>Supported commands: {@code list}, {@code mark}, {@code unmark}, {@code delete},
+ * {@code todo}, {@code deadline}, {@code event} and {@code bye}.
  */
 public class YuWei {
     private static final String BOT_NAME = "YuWei";
     private static final String DIVIDER =
             "    ____________________________________________________________";
     private static final String EXIT_COMMAND = "bye";
-    private static final String MISSING_TASK_NUMBER_MESSAGE = "Please tell me which task number to mark or unmark.";
+    private static final String MISSING_TASK_NUMBER_MESSAGE = "Please tell me which task number.";
     private static final String EVENT_FORMAT_MESSAGE =
             "An event needs a start and an end. Try: event <description> /from <start> /to <end>";
 
@@ -58,6 +58,8 @@ public class YuWei {
             case "mark" -> markTask(tasks,
                     requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
             case "unmark" -> unmarkTask(tasks,
+                    requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
+            case "delete" -> deleteTask(tasks,
                     requireArgument(commandAndArgument, MISSING_TASK_NUMBER_MESSAGE));
             case "todo", "deadline", "event" -> {
                 String argument = requireArgument(commandAndArgument,
@@ -137,6 +139,15 @@ public class YuWei {
         tasks.get(taskIndex).markAsNotDone();
         System.out.println("     OK, I've marked this task as not done yet:");
         System.out.println("       " + tasks.get(taskIndex));
+    }
+
+    /** Removes the task with the given number from the list and reports what was removed. */
+    private static void deleteTask(ArrayList<Task> tasks, String taskNumber) throws YuWeiException {
+        int taskIndex = parseTaskIndex(taskNumber, tasks.size());
+        Task removedTask = tasks.remove(taskIndex); // remove() also returns the removed task
+        System.out.println("     Noted. I've removed this task:");
+        System.out.println("       " + removedTask);
+        System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
     }
 
     /** Returns true if {@code taskIndex} refers to a task currently in the list. */
