@@ -19,6 +19,12 @@ public class Deadline extends Task {
     /** Stored as a LocalDate rather than a String, so the chatbot understands it as a date. */
     private final LocalDate by;
 
+    /**
+     * Creates a deadline.
+     *
+     * @param description what must be done
+     * @param by the date by which it must be done
+     */
     public Deadline(String description, LocalDate by) {
         super(description);
         this.by = by;
