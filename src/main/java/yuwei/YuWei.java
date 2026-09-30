@@ -187,8 +187,9 @@ public class YuWei {
     }
 
     private static void printTaskAdded(Task task, int taskCount) {
-        System.out.println("Got it. I've added this task: " + task);
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
+        System.out.println("     Got it. I've added this task:");
+        System.out.println("       " + task);
+        System.out.println("     Now you have " + taskCount + " tasks in the list.");
     }
 
     private static void printGreeting() {
