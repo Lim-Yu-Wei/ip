@@ -34,6 +34,7 @@ public class YuWei {
         tasks = new TaskList();
     }
 
+    /** Starts the chatbot, saving tasks to {@code data/yuwei.txt} in the current folder. */
     public static void main(String[] args) {
         new YuWei(DATA_FILE).run();
     }
