@@ -12,8 +12,8 @@ import java.nio.file.Path;
  * {@link Ui} talks to the user, {@link Parser} makes sense of commands, {@link TaskList}
  * holds the tasks and {@link Storage} reads and writes the data file.
  *
- * <p>Supported commands: {@code list}, {@code mark}, {@code unmark}, {@code delete},
- * {@code todo}, {@code deadline}, {@code event} and {@code bye}.
+ * <p>Supported commands: {@code list}, {@code find}, {@code mark}, {@code unmark},
+ * {@code delete}, {@code todo}, {@code deadline}, {@code event} and {@code bye}.
  */
 public class YuWei {
     private static final String EXIT_COMMAND = "bye";
@@ -79,6 +79,8 @@ public class YuWei {
 
         switch (commandWord) {
             case "list" -> ui.showTaskList(tasks.getTasks());
+            case "find" -> ui.showMatchingTasks(tasks.find(
+                    Parser.getArgument(fullCommand, "Please tell me what to search for.")));
             case "mark" -> ui.showTaskMarked(tasks.mark(Parser.parseTaskIndex(fullCommand)));
             case "unmark" -> ui.showTaskUnmarked(tasks.unmark(Parser.parseTaskIndex(fullCommand)));
             case "delete" -> {
