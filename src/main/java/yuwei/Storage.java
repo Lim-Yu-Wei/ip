@@ -8,6 +8,8 @@ import yuwei.task.ToDo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +17,7 @@ import java.util.List;
  * Saves tasks to, and loads them from, a text file on the hard disk.
  *
  * <p>Each line of the file holds one task, in the format produced by
- * {@link Task#toFileString()}, e.g. {@code D | 0 | return book | June 6th}.
+ * {@link Task#toFileString()}, e.g. {@code D | 0 | return book | 2019-10-15}.
  */
 public class Storage {
     /** Separator between fields; {@code split()} takes a regex, so {@code |} must be escaped. */
@@ -99,7 +101,7 @@ public class Storage {
         if (fields[0].equals("T") && fields.length == 3) {
             task = new ToDo(description);
         } else if (fields[0].equals("D") && fields.length == 4) {
-            task = new Deadline(description, fields[3]);
+            task = new Deadline(description, parseSavedDate(fields[3], line));
         } else if (fields[0].equals("E") && fields.length == 5) {
             task = new Event(description, fields[3], fields[4]);
         } else {
@@ -110,6 +112,20 @@ public class Storage {
             task.markAsDone();
         }
         return task;
+    }
+
+    /**
+     * Reads a date saved in {@code yyyy-mm-dd} format.
+     *
+     * @throws YuWeiException if {@code text} is not such a date, e.g. a line saved before
+     *     deadlines were stored as dates
+     */
+    private static LocalDate parseSavedDate(String text, String line) throws YuWeiException {
+        try {
+            return LocalDate.parse(text);
+        } catch (DateTimeParseException e) {
+            throw corruptedLine(line);
+        }
     }
 
     private static YuWeiException corruptedLine(String line) {
