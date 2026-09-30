@@ -5,9 +5,12 @@ import yuwei.task.Event;
 import yuwei.task.Task;
 import yuwei.task.ToDo;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
 /**
  * Makes sense of the text the user types, e.g. splitting
- * {@code deadline return book /by June 6th} into its parts.
+ * {@code deadline return book /by 2019-10-15} into its parts.
  *
  * <p>All methods are static because a Parser has no state of its own: the result depends
  * only on the text passed in. (If parsing ever needed settings, such as a preferred date
@@ -68,13 +71,29 @@ public class Parser {
         };
     }
 
-    /** Creates a Deadline from an argument of the form {@code <description> /by <time>}. */
+    /**
+     * Converts text such as {@code 2019-10-15} into a date.
+     *
+     * @throws YuWeiException if the text is not a valid date in {@code yyyy-mm-dd} format
+     */
+    public static LocalDate parseDate(String text) throws YuWeiException {
+        try {
+            // LocalDate.parse reads the ISO format yyyy-mm-dd and rejects impossible dates like 2019-02-30.
+            return LocalDate.parse(text.trim());
+        } catch (DateTimeParseException e) {
+            throw new YuWeiException("'" + text + "' is not a date I understand. "
+                    + "Please use yyyy-mm-dd, e.g. 2019-10-15.");
+        }
+    }
+
+    /** Creates a Deadline from an argument of the form {@code <description> /by <yyyy-mm-dd>}. */
     private static Deadline parseDeadline(String argument) throws YuWeiException {
         String[] descriptionAndBy = argument.split(" /by ", 2);
         if (descriptionAndBy.length < 2) {
-            throw new YuWeiException("A deadline needs a time. Try: deadline <description> /by <time>");
+            throw new YuWeiException(
+                    "A deadline needs a date. Try: deadline <description> /by <yyyy-mm-dd>");
         }
-        return new Deadline(descriptionAndBy[0], descriptionAndBy[1]);
+        return new Deadline(descriptionAndBy[0], parseDate(descriptionAndBy[1]));
     }
 
     /** Creates an Event from an argument of the form {@code <description> /from <start> /to <end>}. */
