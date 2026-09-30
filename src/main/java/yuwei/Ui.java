@@ -70,6 +70,16 @@ public class Ui {
         showNumberedTasks(tasks);
     }
 
+    /** Shows the tasks found by a search, numbered from 1, or says that nothing matched. */
+    public void showMatchingTasks(List<Task> matchingTasks) {
+        if (matchingTasks.isEmpty()) {
+            showMessage("There are no matching tasks in your list.");
+            return;
+        }
+        showMessage("Here are the matching tasks in your list:");
+        showNumberedTasks(matchingTasks);
+    }
+
     /** Shows the confirmation for a newly added task. */
     public void showTaskAdded(Task task, int taskCount) {
         showMessage("Got it. I've added this task:");

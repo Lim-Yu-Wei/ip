@@ -65,6 +65,21 @@ public class TaskList {
         return task;
     }
 
+    /**
+     * Returns the tasks whose description contains {@code keyword}, ignoring upper/lower case.
+     * The list itself is not changed.
+     */
+    public List<Task> find(String keyword) {
+        String lowerCaseKeyword = keyword.toLowerCase();
+        List<Task> matchingTasks = new ArrayList<>();
+        for (Task task : tasks) {
+            if (task.getDescription().toLowerCase().contains(lowerCaseKeyword)) {
+                matchingTasks.add(task);
+            }
+        }
+        return matchingTasks;
+    }
+
     /** Returns the number of tasks in the list. */
     public int size() {
         return tasks.size();
